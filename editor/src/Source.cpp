@@ -1,10 +1,19 @@
+#include <core/Application.h>
+#include <memory>
 #include <iostream>
-#include "core/utils/test.h"
+
+class MyApp : public Bunny::Application {
+	virtual void Update() override {
+		std::cout << "Update frame: " << frame++ << std::endl;
+	}
+
+	int frame = 0;
+};
 
 int main() {
-	std::cout << "Hello World\n";
+	auto myApp = std::make_unique<MyApp>();
 
-	std::cin.get();
+	int returnCode = myApp->Start(800, 600, "My App");
 
-	return 0;
+	return returnCode;
 }
