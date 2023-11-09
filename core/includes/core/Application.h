@@ -1,4 +1,7 @@
+#pragma once
+
 namespace Bunny {
+
 	class Application {
 	public:
 		Application();
@@ -13,4 +16,5 @@ namespace Bunny {
 
 		virtual void Update() {}
 	};
+
 }

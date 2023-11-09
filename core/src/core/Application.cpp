@@ -1,13 +1,16 @@
-#pragma once
-
 #include "core/Application.h"
+
+#include "core/log.h"
 
 #include <GLFW/glfw3.h>
 
 namespace Bunny {
 
 	Application::Application() {
-
+        LOG_INFO("HELLO");
+        LOG_WARN("MY");
+        LOG_ERROR("DEAR");
+        LOG_CRIT("FRIEND");
 	}
 
 	Application::~Application() {

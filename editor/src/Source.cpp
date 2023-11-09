@@ -4,7 +4,7 @@
 
 class MyApp : public Bunny::Application {
 	virtual void Update() override {
-		std::cout << "Update frame: " << frame++ << std::endl;
+		// std::cout << "Update frame: " << frame++ << std::endl;
 	}
 
 	int frame = 0;
