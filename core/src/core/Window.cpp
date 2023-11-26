@@ -4,16 +4,21 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
+#include <imgui/imgui.h>
+#include <imgui/backends/imgui_impl_opengl3.h>
+
 namespace Bunny {
 
     static bool s_GLFWInit = false;
 
 	Window::Window(std::string title, const unsigned int width, const unsigned int height)
-		:m_title(std::move(title)),
-			m_width(width),
-			m_height(height) 
+        :m_data({ std::move(title), width, height })
 	{
 		int resultCode = Init();
+
+        IMGUI_CHECKVERSION();
+        ImGui::CreateContext();
+        ImGui_ImplOpenGL3_Init();
 	}
 
 	Window::~Window() {
@@ -21,7 +26,7 @@ namespace Bunny {
 	}
 
 	int Window::Init() {
-        LOG_INFO("Create Window '{0}', size: {1}x{2}", m_title, m_width, m_height);
+        LOG_INFO("Create Window '{0}', size: {1}x{2}", m_data.title, m_data.width, m_data.height);
         
         if (!s_GLFWInit) {
             if (!glfwInit()) {
@@ -31,34 +36,78 @@ namespace Bunny {
             s_GLFWInit = true;
         }
 
-        m_Window = glfwCreateWindow(m_width, m_height, m_title.c_str(), nullptr, nullptr);
+        m_pWindow = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), nullptr, nullptr);
 
-        if (!m_Window)
+        if (!m_pWindow)
         {
-            LOG_CRIT("Failed create window {0}", m_title);
+            LOG_CRIT("Failed create window {0}", m_data.title);
             glfwTerminate();
             return -2;
         }
 
-        glfwMakeContextCurrent(m_Window);
+        glfwMakeContextCurrent(m_pWindow);
 
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
             LOG_CRIT("Failed to initialize GLAD");
             return -3;
         }
 
+        glfwSetWindowUserPointer(m_pWindow, &m_data);
+
+        glfwSetWindowSizeCallback(m_pWindow, 
+            [](GLFWwindow* pWindow, int width, int height) {
+                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+                data.width = width;
+                data.height = height;
+
+                EventWindowResize event(width, height);
+                data.eventCallbackFn(event);
+            }
+        );
+        
+        glfwSetCursorPosCallback(m_pWindow,
+            [](GLFWwindow* pWindow, double x, double y) {
+                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+
+                EventMouseMoved event(x, y);
+                data.eventCallbackFn(event);
+            }
+        );
+
+        glfwSetWindowCloseCallback(m_pWindow,
+            [](GLFWwindow* pWindow) {
+                WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
+
+                EventWindowClose event;
+                data.eventCallbackFn(event);
+            }
+        );
+
         return 0;
 	}
 
 	void Window::Shutdown() {
-        glfwDestroyWindow(m_Window);
+        glfwDestroyWindow(m_pWindow);
         glfwTerminate();
 	}
 
 	void Window::Update() {
         glClearColor(1, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT);
-        glfwSwapBuffers(m_Window);
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize.x = static_cast<float>(get_width());
+        io.DisplaySize.y = static_cast<float>(get_height());
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::ShowDemoWindow();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+        glfwSwapBuffers(m_pWindow);
         glfwPollEvents();
 	}
 

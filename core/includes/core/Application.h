@@ -1,5 +1,7 @@
 #pragma once
 
+#include "core/Events.h"
+
 #include <memory>
 
 namespace Bunny {
@@ -19,7 +21,10 @@ namespace Bunny {
 		virtual void Update() {}
 
 	private:
-		std::unique_ptr<class Window> m_Window;
+		std::unique_ptr<class Window> m_pWindow;
+
+		EventDispatcher m_event_dispatcher;
+		bool m_bCloseWindow = false;
 	};
 
 }
