@@ -38,11 +38,13 @@ namespace Bunny {
 			EventCallbackFn eventCallbackFn;
 		};
 
-		int Init();	
+		int init();	
 		void Shutdown();
 
 		GLFWwindow* m_pWindow = nullptr;
 		WindowData m_data;
+
+		float m_background_color[4] = { 1.f, .0f, .0f, .0f };
 	};
 
 }
