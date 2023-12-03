@@ -10,17 +10,31 @@ set(ENGINE_PUBLIC_INCLUDES
 
 set(ENGINE_PRIVATE_INCLUDES
 	src/core/Window.h
+	src/core/render/opengl/ShaderProgram.h
+	src/core/render/opengl/VertexBuffer.h
+	src/core/render/opengl/VertexArray.h
 )
 
-set(ENGINE_PUBLIC_SOURCE
+set(ENGINE_PRIVATE_SOURCES
 	src/core/Application.cpp
 	src/core/WIndow.cpp
+	src/core/render/opengl/ShaderProgram.cpp
+	src/core/render/opengl/VertexBuffer.cpp
+	src/core/render/opengl/VertexArray.cpp
+)
+
+set(ENGINE_ALL_SOURCES
+	${ENGINE_PUBLIC_INCLUDES}
+	${ENGINE_PRIVATE_INCLUDES}
+	${ENGINE_PRIVATE_SOURCES}
 )
 
 add_library(${ENGINE_NAME} STATIC
-	${ENGINE_PUBLIC_SOURCE}
-	${ENGINE_PRIVATE_INCLUDES}
-	${ENGINE_PUBLIC_INCLUDES}
+	${ENGINE_ALL_SOURCES}
+)
+
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} FILES
+	${ENGINE_ALL_SOURCES}
 )
 
 target_include_directories(${ENGINE_NAME} PUBLIC includes)

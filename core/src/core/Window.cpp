@@ -1,5 +1,8 @@
 #include "core/Window.h"
 #include "core/Logs.h"
+#include "core/render/opengl/ShaderProgram.h"
+#include "core/render/opengl/VertexBuffer.h"
+#include "core/render/opengl/VertexArray.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -14,8 +17,8 @@ namespace Bunny {
 
     GLfloat points[] = {
         .0f, .5f, .0f,
-        -.5f, -.5f, .0f,
-        .5f, -.5f, .0f
+        .5f, -.5f, .0f,
+        -.5f, -.5f, .0f
     };
 
     GLfloat colors[] = {
@@ -26,24 +29,26 @@ namespace Bunny {
 
     const char* vertex_shader =
         "#version 460\n"
-        "layout(location = 0) in vec3 vertex_position;"
-        "layout(location = 1) in vec3 vertex_color;"
-        "out vec3 color;"
+        "layout(location = 0) in vec3 vertex_pos;"
+        "layout(location = 1) in vec3 vertex_col;"
+        "out vec3 col;"
         "void main() {"
-        "   color = vertex_color;"
-        "   gl_Position = vec4(vertex_position, 1.);"
+        "   col = vertex_col;"
+        "   gl_Position = vec4(vertex_pos, 1.);"
         "}";
 
     const char* fragment_shader =
         "#version 460\n"
-        "in vec3 color;"
+        "in vec3 col;"
         "out vec4 frag_color;"
         "void main() {"
-        "   frag_color = vec4(color, 1.);"
+        "   frag_color = vec4(col, 1.);"
         "}";
 
-    GLuint shader_program;
-    GLuint vao;
+    std::unique_ptr<ShaderProgram> p_shader_program;
+    std::unique_ptr<VertexBuffer> p_points_vbo;
+    std::unique_ptr<VertexBuffer> p_colors_vbo;
+    std::unique_ptr<VertexArray> p_vao;
 
 	Window::Window(std::string title, const unsigned int width, const unsigned int height)
         :m_data({ std::move(title), width, height })
@@ -120,42 +125,17 @@ namespace Bunny {
                 glViewport(0, 0, width, height);
             });
 
-        GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vs, 1, &vertex_shader, nullptr);
-        glCompileShader(vs);
-        
-        GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fs, 1, &fragment_shader, nullptr);
-        glCompileShader(fs);
+        p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
+        if (!p_shader_program->isCompiled()) {
+            return false;
+        }
 
-        shader_program = glCreateProgram();
-        glAttachShader(shader_program, vs);
-        glAttachShader(shader_program, fs);
-        glLinkProgram(shader_program);
+        p_points_vbo = std::make_unique<VertexBuffer>(points, sizeof(points));
+        p_colors_vbo = std::make_unique<VertexBuffer>(colors, sizeof(colors));
+        p_vao = std::make_unique<VertexArray>();
 
-        glDeleteShader(vs);
-        glDeleteShader(fs);
-
-        GLuint points_vbo = 0;
-        glGenBuffers(1, &points_vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(points), points, GL_STATIC_DRAW);
-        
-        GLuint colors_vbo = 0;
-        glGenBuffers(1, &colors_vbo);
-        glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
-        glBufferData(GL_ARRAY_BUFFER, sizeof(colors), colors, GL_STATIC_DRAW);
-
-        glGenVertexArrays(1, &vao);
-        glBindVertexArray(vao);
-
-        glEnableVertexAttribArray(0);
-        glBindBuffer(GL_ARRAY_BUFFER, points_vbo);
-        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
-        
-        glEnableVertexAttribArray(1);
-        glBindBuffer(GL_ARRAY_BUFFER, colors_vbo);
-        glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+        p_vao->add_buffer(*p_points_vbo);
+        p_vao->add_buffer(*p_colors_vbo);
 
         return 0;
 	}
@@ -173,8 +153,8 @@ namespace Bunny {
 
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shader_program);
-        glBindVertexArray(vao);
+        p_shader_program->bind();
+        p_vao->bind();
         glDrawArrays(GL_TRIANGLES, 0, 3);
         
 
@@ -185,8 +165,6 @@ namespace Bunny {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
-
-        ImGui::ShowDemoWindow();
 
         ImGui::Begin("Change Background Color");
         ImGui::ColorEdit4("Color", m_background_color);

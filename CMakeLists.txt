@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.26)
 
 set(PROJ_NAME BunnyEngine)
+project(${PROJ_NAME})
 
 add_subdirectory(core)
 add_subdirectory(editor)

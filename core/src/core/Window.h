@@ -44,7 +44,7 @@ namespace Bunny {
 		GLFWwindow* m_pWindow = nullptr;
 		WindowData m_data;
 
-		float m_background_color[4] = { 1.f, .0f, .0f, .0f };
+		float m_background_color[4] = { .4f, .4f, .4f, .0f };
 	};
 
 }
