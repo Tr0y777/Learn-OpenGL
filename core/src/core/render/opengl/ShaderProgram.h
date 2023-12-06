@@ -1,5 +1,7 @@
 #pragma once
 
+#include <glm/mat4x4.hpp>
+
 namespace Bunny {
 
 	class ShaderProgram {
@@ -16,6 +18,7 @@ namespace Bunny {
 		void bind() const;
 		static void unbind();
 		bool isCompiled() const { return m_isCompiled; }
+		void setMat4(const char* name, const glm::mat4& matrix) const;
 
 	private:
 		bool m_isCompiled = false;

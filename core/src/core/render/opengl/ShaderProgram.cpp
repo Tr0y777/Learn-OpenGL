@@ -4,6 +4,8 @@
 
 #include <glad/glad.h>
 
+#include <glm/gtc/type_ptr.hpp>
+
 namespace Bunny {
 
 	bool create_shader(const char* source, const GLenum shader_type, GLuint& shader_id) {
@@ -95,4 +97,9 @@ namespace Bunny {
 		shaderProgram.m_id = 0;
 		shaderProgram.m_isCompiled = false;
 	}
+
+	void ShaderProgram::setMat4(const char* name, const glm::mat4& matrix) const {
+		glUniformMatrix4fv(glGetUniformLocation(m_id, name), 1, GL_FALSE, glm::value_ptr(matrix));
+	}
+
 }

@@ -13,7 +13,7 @@ class MyApp : public Bunny::Application {
 int main() {
 	auto myApp = std::make_unique<MyApp>();
 
-	int returnCode = myApp->Start(1280, 720, "Bunny Engine");
+	int returnCode = myApp->Start(1024, 768, "Bunny Engine");
 
 	return returnCode;
 }

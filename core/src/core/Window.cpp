@@ -12,6 +12,9 @@
 #include <imgui/backends/imgui_impl_opengl3.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 
+#include <glm/mat3x3.hpp>
+#include <glm/trigonometric.hpp>
+
 namespace Bunny {
 
     static bool s_GLFWInit = false;
@@ -28,28 +31,34 @@ namespace Bunny {
     };
 
     const char* vertex_shader =
-        "#version 460\n"
-        "layout(location = 0) in vec3 vertex_pos;"
-        "layout(location = 1) in vec3 vertex_col;"
-        "out vec3 col;"
-        "void main() {"
-        "   col = vertex_col;"
-        "   gl_Position = vec4(vertex_pos, 1.);"
-        "}";
+        R"(#version 460
+        layout(location = 0) in vec3 vertex_pos;
+        layout(location = 1) in vec3 vertex_col;
+        uniform mat4 model_mat;
+        out vec3 col;
+        void main() {
+           col = vertex_col;
+           gl_Position = model_mat * vec4(vertex_pos, 1.);
+        }
+        )";
 
     const char* fragment_shader =
-        "#version 460\n"
-        "in vec3 col;"
-        "out vec4 frag_color;"
-        "void main() {"
-        "   frag_color = vec4(col, 1.);"
-        "}";
+        R"(#version 460
+        in vec3 col;
+        out vec4 frag_color;
+        void main() {
+           frag_color = vec4(col, 1.);
+        }
+        )";
 
     std::unique_ptr<ShaderProgram> p_shader_program;
     std::unique_ptr<VertexBuffer> p_vbo;
     std::unique_ptr<IndexBuffer> p_ibo;
     std::unique_ptr<VertexArray> p_vao;
     
+    float scale[3] = { 1.f, 1.f, 1.f };
+    float rotate = .0f;
+    float translate[3] = { .0f, .0f, .0f };
 
 	Window::Window(std::string title, const unsigned int width, const unsigned int height)
         :m_data({ std::move(title), width, height })
@@ -171,15 +180,36 @@ namespace Bunny {
         //ImGui::ShowDemoWindow();
 
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(350, 75));
+        ImGui::SetNextWindowSize(ImVec2(350, 120));
         ImGui::Begin("Properties");
 
         ImGui::ColorEdit4("Color", m_background_color);
-
-        static bool test = false;
-        ImGui::Checkbox("test", &test);
+        ImGui::SliderFloat3("Scale", scale, .0f, 2.f);
+        ImGui::SliderFloat("Rotate", &rotate, .0f, 360.f);
+        ImGui::SliderFloat3("Position", translate, -1.f, 1.f);
 
         p_shader_program->bind();
+
+        glm::mat4 scale_mat(scale[0], 0,        0,        0,
+                              0,         scale[1], 0,        0,
+                              0,         0,        scale[2], 0,
+                              0,         0,        0,        1);
+
+        float rotate_in_rad = glm::radians(rotate);
+        glm::mat4 rotate_mat( cos(rotate_in_rad), sin(rotate_in_rad), 0, 0,
+                             -sin(rotate_in_rad), cos(rotate_in_rad), 0, 0,
+                              0,                  0,                  1, 0,
+                              0,                  0,                  0, 1);
+
+        glm::mat4 pos_mat(1,            0,            0,            0,
+                          0,            1,            0,            0,
+                          0,            0,            1,            0,
+                          translate[0], translate[1], translate[2], 1);
+
+        glm::mat4 model_mat = pos_mat * rotate_mat * scale_mat;
+
+        p_shader_program->setMat4("model_mat", model_mat);
+
         p_vao->bind();
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(p_vao->get_indices_count()), GL_UNSIGNED_INT, nullptr);
 
