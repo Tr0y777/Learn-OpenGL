@@ -2,7 +2,7 @@
 
 #include "core/Logs.h"
 
-#include "glad/glad.h"
+#include <glad/glad.h>
 
 namespace Bunny {
 
@@ -40,14 +40,29 @@ namespace Bunny {
 		glBindVertexArray(0);
 	}
 
-	void VertexArray::add_buffer(const VertexBuffer& vertex_buffer) {
+	void VertexArray::add_vertex_buffer(const VertexBuffer& vertex_buffer) {
 		bind();
 		vertex_buffer.bind();
 
-		glEnableVertexAttribArray(m_elem_count);
-		glVertexAttribPointer(m_elem_count, 3, GL_FLOAT, GL_FALSE, 0, nullptr);
+		for (const BufferElement& current_elem : vertex_buffer.get_layout().get_elem()) {
+			glEnableVertexAttribArray(m_elem_count);
+			glVertexAttribPointer(
+				m_elem_count,
+				static_cast<GLint>(current_elem.components_count),
+				current_elem.component_type,
+				GL_FALSE,
+				static_cast<GLsizei>(vertex_buffer.get_layout().get_stride()),
+				reinterpret_cast<const void*>(current_elem.offset)
+			);
 
-		++m_elem_count;
+			++m_elem_count;
+		}
+	}
+
+	void VertexArray::set_index_buffer(const IndexBuffer& index_buffer) {
+		bind();
+		index_buffer.bind();
+		m_indices_count = index_buffer.get_count();
 	}
 
 }

@@ -3,6 +3,7 @@
 #include "core/render/opengl/ShaderProgram.h"
 #include "core/render/opengl/VertexBuffer.h"
 #include "core/render/opengl/VertexArray.h"
+#include "core/render/opengl/IndexBuffer.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -15,16 +16,15 @@ namespace Bunny {
 
     static bool s_GLFWInit = false;
 
-    GLfloat points[] = {
-        .0f, .5f, .0f,
-        .5f, -.5f, .0f,
-        -.5f, -.5f, .0f
+    GLfloat positions_colors[] = {
+        -.5f, -.5f, .0f,  .0f, .0f, 1.f,
+        .5f, -.5f, .0f,   1.f, .0f, .0f,
+        -.5f, .5f, .0f,   .0f, 1.f, .0f,
+        .5f, .5f, .0f,    .0f, 1.f, 1.f
     };
 
-    GLfloat colors[] = {
-        1.f, .0f, .0f,
-        .0f, 1.f, .0f,
-        .0f, .0f, 1.f
+    GLuint indices[] = {
+        0, 1, 2, 3, 2, 1
     };
 
     const char* vertex_shader =
@@ -46,9 +46,10 @@ namespace Bunny {
         "}";
 
     std::unique_ptr<ShaderProgram> p_shader_program;
-    std::unique_ptr<VertexBuffer> p_points_vbo;
-    std::unique_ptr<VertexBuffer> p_colors_vbo;
+    std::unique_ptr<VertexBuffer> p_vbo;
+    std::unique_ptr<IndexBuffer> p_ibo;
     std::unique_ptr<VertexArray> p_vao;
+    
 
 	Window::Window(std::string title, const unsigned int width, const unsigned int height)
         :m_data({ std::move(title), width, height })
@@ -130,12 +131,17 @@ namespace Bunny {
             return false;
         }
 
-        p_points_vbo = std::make_unique<VertexBuffer>(points, sizeof(points));
-        p_colors_vbo = std::make_unique<VertexBuffer>(colors, sizeof(colors));
-        p_vao = std::make_unique<VertexArray>();
+        BufferLayout buffer_layout_vec3 {
+            ShaderDataType::FLoat3,
+            ShaderDataType::FLoat3
+        };
 
-        p_vao->add_buffer(*p_points_vbo);
-        p_vao->add_buffer(*p_colors_vbo);
+        p_vao = std::make_unique<VertexArray>();
+        p_vbo = std::make_unique<VertexBuffer>(positions_colors, sizeof(positions_colors), buffer_layout_vec3);
+        p_ibo = std::make_unique<IndexBuffer>(indices, sizeof(indices) / sizeof(GLuint));
+
+        p_vao->add_vertex_buffer(*p_vbo);
+        p_vao->set_index_buffer(*p_ibo);
 
         return 0;
 	}
@@ -146,17 +152,13 @@ namespace Bunny {
 	}
 
 	void Window::Update() {
-        glClearColor(m_background_color[0],
+        glClearColor(
+            m_background_color[0],
             m_background_color[1],
             m_background_color[2],
             m_background_color[3]);
 
         glClear(GL_COLOR_BUFFER_BIT);
-
-        p_shader_program->bind();
-        p_vao->bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        
 
         ImGuiIO& io = ImGui::GetIO();
         io.DisplaySize.x = static_cast<float>(get_width());
@@ -166,8 +168,21 @@ namespace Bunny {
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
-        ImGui::Begin("Change Background Color");
+        //ImGui::ShowDemoWindow();
+
+        ImGui::SetNextWindowPos(ImVec2(0, 0));
+        ImGui::SetNextWindowSize(ImVec2(350, 75));
+        ImGui::Begin("Properties");
+
         ImGui::ColorEdit4("Color", m_background_color);
+
+        static bool test = false;
+        ImGui::Checkbox("test", &test);
+
+        p_shader_program->bind();
+        p_vao->bind();
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(p_vao->get_indices_count()), GL_UNSIGNED_INT, nullptr);
+
         ImGui::End();
 
         ImGui::Render();
