@@ -6,6 +6,7 @@ set(ENGINE_PUBLIC_INCLUDES
 	includes/core/Application.h
 	includes/core/Logs.h
 	includes/core/Events.h
+	includes/core/Camera.h
 )
 
 set(ENGINE_PRIVATE_INCLUDES
@@ -19,6 +20,7 @@ set(ENGINE_PRIVATE_INCLUDES
 set(ENGINE_PRIVATE_SOURCES
 	src/core/Application.cpp
 	src/core/WIndow.cpp
+	src/core/Camera.cpp
 	src/core/render/opengl/ShaderProgram.cpp
 	src/core/render/opengl/VertexBuffer.cpp
 	src/core/render/opengl/IndexBuffer.cpp

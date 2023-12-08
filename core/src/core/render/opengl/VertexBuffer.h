@@ -68,6 +68,7 @@ namespace Bunny {
 		static void unbind();
 
 		const BufferLayout& get_layout() const { return m_buffer_layout; }
+
 	private:
 		unsigned int m_id = 0;
 		BufferLayout m_buffer_layout;

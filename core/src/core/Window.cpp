@@ -4,6 +4,7 @@
 #include "core/render/opengl/VertexBuffer.h"
 #include "core/render/opengl/VertexArray.h"
 #include "core/render/opengl/IndexBuffer.h"
+#include "core/Camera.h"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -34,11 +35,12 @@ namespace Bunny {
         R"(#version 460
         layout(location = 0) in vec3 vertex_pos;
         layout(location = 1) in vec3 vertex_col;
-        uniform mat4 model_mat;
+        uniform mat4 model_matrix;
+        uniform mat4 view_projection_matrix;
         out vec3 col;
         void main() {
            col = vertex_col;
-           gl_Position = model_mat * vec4(vertex_pos, 1.);
+           gl_Position = view_projection_matrix * model_matrix * vec4(vertex_pos, 1.);
         }
         )";
 
@@ -56,9 +58,14 @@ namespace Bunny {
     std::unique_ptr<IndexBuffer> p_ibo;
     std::unique_ptr<VertexArray> p_vao;
     
-    float scale[3] = { 1.f, 1.f, 1.f };
-    float rotate = .0f;
-    float translate[3] = { .0f, .0f, .0f };
+    float scale[3] = { 1, 1, 1 };
+    float rotate[3] = { 0, 0, 0 };
+    float translate[3] = { 0, 0, 0 };
+
+    float camera_pos[3] = { 0, 0, 1 };
+    float camera_rotation[3] = { 0, 0, 0 };
+    bool perspective_cam = false;
+    Camera camera;
 
 	Window::Window(std::string title, const unsigned int width, const unsigned int height)
         :m_data({ std::move(title), width, height })
@@ -180,35 +187,60 @@ namespace Bunny {
         //ImGui::ShowDemoWindow();
 
         ImGui::SetNextWindowPos(ImVec2(0, 0));
-        ImGui::SetNextWindowSize(ImVec2(350, 120));
+        ImGui::SetNextWindowSize(ImVec2(350, 350));
         ImGui::Begin("Properties");
 
         ImGui::ColorEdit4("Color", m_background_color);
         ImGui::SliderFloat3("Scale", scale, .0f, 2.f);
-        ImGui::SliderFloat("Rotate", &rotate, .0f, 360.f);
-        ImGui::SliderFloat3("Position", translate, -1.f, 1.f);
+        ImGui::SliderFloat3("Rotate", rotate, .0f, 360.f);
+        ImGui::SliderFloat3("Translate", translate, -1.f, 1.f);
+
+        ImGui::SliderFloat3("Camera Position", camera_pos, -10.f, 10.f);
+        ImGui::SliderFloat3("Camera Rotation", camera_rotation, 0, 360.f);
+        ImGui::Checkbox("Camera Perspective", &perspective_cam);
 
         p_shader_program->bind();
 
-        glm::mat4 scale_mat(scale[0], 0,        0,        0,
+        glm::mat4 scale_matrix(scale[0], 0,        0,        0,
                               0,         scale[1], 0,        0,
                               0,         0,        scale[2], 0,
                               0,         0,        0,        1);
 
-        float rotate_in_rad = glm::radians(rotate);
-        glm::mat4 rotate_mat( cos(rotate_in_rad), sin(rotate_in_rad), 0, 0,
-                             -sin(rotate_in_rad), cos(rotate_in_rad), 0, 0,
+        float rotate_in_rad_x = glm::radians(rotate[0]);
+        glm::mat4 rotate_matrix_x(1, 0, 0, 0,
+            0, cos(rotate_in_rad_x), sin(rotate_in_rad_x), 0,
+            0, -sin(rotate_in_rad_x), cos(rotate_in_rad_x), 0,
+            0, 0, 0, 1);
+
+        float rotate_in_rad_y = glm::radians(rotate[1]);
+        glm::mat4 rotate_matrix_y(cos(rotate_in_rad_y), 0, -sin(rotate_in_rad_y), 0,
+            0, 1, 0, 0,
+            sin(rotate_in_rad_y), 0, cos(rotate_in_rad_y), 0,
+            0, 0, 0, 1);
+
+        float rotate_in_rad_z = glm::radians(rotate[2]);
+        glm::mat4 rotate_matrix_z( cos(rotate_in_rad_z), sin(rotate_in_rad_z), 0, 0,
+                             -sin(rotate_in_rad_z), cos(rotate_in_rad_z), 0, 0,
                               0,                  0,                  1, 0,
                               0,                  0,                  0, 1);
 
-        glm::mat4 pos_mat(1,            0,            0,            0,
-                          0,            1,            0,            0,
-                          0,            0,            1,            0,
+        glm::mat4 translate_matrix(1, 0, 0, 0,
+                          0, 1, 0, 0,
+                          0, 0, 1, 0,
                           translate[0], translate[1], translate[2], 1);
 
-        glm::mat4 model_mat = pos_mat * rotate_mat * scale_mat;
+        glm::mat4 rotate_matrix = rotate_matrix_x * rotate_matrix_y * rotate_matrix_z;
 
-        p_shader_program->setMat4("model_mat", model_mat);
+        glm::mat4 model_matrix = translate_matrix * rotate_matrix * scale_matrix;
+
+        p_shader_program->setMat4("model_matrix", model_matrix);
+
+        camera.set_position_rotation(glm::vec3(camera_pos[0], camera_pos[1], camera_pos[2]),
+            glm::vec3(camera_rotation[0], camera_rotation[1], camera_rotation[2]));
+
+        camera.set_projection_mode(perspective_cam ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Ortographic);
+
+        p_shader_program->setMat4("view_projection_matrix", camera.get_projection_matrix() * camera.get_view_matrix());
 
         p_vao->bind();
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(p_vao->get_indices_count()), GL_UNSIGNED_INT, nullptr);
