@@ -1,12 +1,13 @@
 #include "core/Window.h"
 #include "core/Logs.h"
-#include "core/render/opengl/ShaderProgram.h"
-#include "core/render/opengl/VertexBuffer.h"
-#include "core/render/opengl/VertexArray.h"
-#include "core/render/opengl/IndexBuffer.h"
+#include "core/render/OpenGL/ShaderProgram.h"
+#include "core/render/OpenGL/VertexBuffer.h"
+#include "core/render/OpenGL/VertexArray.h"
+#include "core/render/OpenGL/IndexBuffer.h"
 #include "core/Camera.h"
 
-#include <glad/glad.h>
+#include "core/render/OpenGL/Render_OpenGL.h"
+
 #include <GLFW/glfw3.h>
 
 #include <imgui/imgui.h>
@@ -17,8 +18,6 @@
 #include <glm/trigonometric.hpp>
 
 namespace Bunny {
-
-    static bool s_GLFWInit = false;
 
     GLfloat positions_colors[] = {
         -.5f, -.5f, .0f,  .0f, .0f, 1.f,
@@ -85,12 +84,13 @@ namespace Bunny {
 	int Window::init() {
         LOG_INFO("Create Window '{0}', size: {1}x{2}", m_data.title, m_data.width, m_data.height);
         
-        if (!s_GLFWInit) {
-            if (!glfwInit()) {
-                LOG_CRIT("Failed initialized GLFW");
-                return -1;
-            }
-            s_GLFWInit = true;
+        glfwSetErrorCallback([](int error_code, const char* description) {
+            LOG_CRIT("GLFW error: {0}", description);
+            });
+
+        if (!glfwInit()) {
+            LOG_CRIT("Failed initialized GLFW");
+            return -1;
         }
 
         m_pWindow = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), nullptr, nullptr);
@@ -98,14 +98,11 @@ namespace Bunny {
         if (!m_pWindow)
         {
             LOG_CRIT("Failed create window {0}", m_data.title);
-            glfwTerminate();
             return -2;
         }
 
-        glfwMakeContextCurrent(m_pWindow);
-
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-            LOG_CRIT("Failed to initialize GLAD");
+        if (!Render_OpenGL::init(m_pWindow)) {
+            LOG_CRIT("Failed to initialize OpenGL render");
             return -3;
         }
 
@@ -116,7 +113,6 @@ namespace Bunny {
                 WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
                 data.width = width;
                 data.height = height;
-
                 EventWindowResize event(width, height);
                 data.eventCallbackFn(event);
             });
@@ -124,7 +120,6 @@ namespace Bunny {
         glfwSetCursorPosCallback(m_pWindow,
             [](GLFWwindow* pWindow, double x, double y) {
                 WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
-
                 EventMouseMoved event(x, y);
                 data.eventCallbackFn(event);
             });
@@ -132,15 +127,15 @@ namespace Bunny {
         glfwSetWindowCloseCallback(m_pWindow,
             [](GLFWwindow* pWindow) {
                 WindowData& data = *static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow));
-
                 EventWindowClose event;
                 data.eventCallbackFn(event);
             });
 
         glfwSetFramebufferSizeCallback(m_pWindow,
             [](GLFWwindow* pWindow, int width, int height) {
-                glViewport(0, 0, width, height);
-            });
+                Render_OpenGL::set_viewport(width, height);
+            }
+        );
 
         p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
         if (!p_shader_program->isCompiled()) {
@@ -163,18 +158,22 @@ namespace Bunny {
 	}
 
 	void Window::Shutdown() {
+        if (ImGui::GetCurrentContext()) {
+            ImGui::DestroyContext();
+        }
+
         glfwDestroyWindow(m_pWindow);
         glfwTerminate();
 	}
 
 	void Window::Update() {
-        glClearColor(
+        Render_OpenGL::set_clear_color(
             m_background_color[0],
             m_background_color[1],
             m_background_color[2],
             m_background_color[3]);
 
-        glClear(GL_COLOR_BUFFER_BIT);
+        Render_OpenGL::clear();
 
         ImGuiIO& io = ImGui::GetIO();
         io.DisplaySize.x = static_cast<float>(get_width());
@@ -242,8 +241,7 @@ namespace Bunny {
 
         p_shader_program->setMat4("view_projection_matrix", camera.get_projection_matrix() * camera.get_view_matrix());
 
-        p_vao->bind();
-        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(p_vao->get_indices_count()), GL_UNSIGNED_INT, nullptr);
+        Render_OpenGL::draw(*p_vao);
 
         ImGui::End();
 

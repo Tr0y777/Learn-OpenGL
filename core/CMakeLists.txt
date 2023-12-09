@@ -11,20 +11,22 @@ set(ENGINE_PUBLIC_INCLUDES
 
 set(ENGINE_PRIVATE_INCLUDES
 	src/core/Window.h
-	src/core/render/opengl/ShaderProgram.h
-	src/core/render/opengl/VertexBuffer.h
-	src/core/render/opengl/IndexBuffer.h
-	src/core/render/opengl/VertexArray.h
+	src/core/render/OpenGL/ShaderProgram.h
+	src/core/render/OpenGL/VertexBuffer.h
+	src/core/render/OpenGL/IndexBuffer.h
+	src/core/render/OpenGL/VertexArray.h
+	src/core/render/OpenGL/Render_OpenGL.h
 )
 
 set(ENGINE_PRIVATE_SOURCES
 	src/core/Application.cpp
 	src/core/WIndow.cpp
 	src/core/Camera.cpp
-	src/core/render/opengl/ShaderProgram.cpp
-	src/core/render/opengl/VertexBuffer.cpp
-	src/core/render/opengl/IndexBuffer.cpp
-	src/core/render/opengl/VertexArray.cpp
+	src/core/render/OpenGL/ShaderProgram.cpp
+	src/core/render/OpenGL/VertexBuffer.cpp
+	src/core/render/OpenGL/IndexBuffer.cpp
+	src/core/render/OpenGL/VertexArray.cpp
+	src/core/render/OpenGL/Render_OpenGL.cpp
 )
 
 set(ENGINE_ALL_SOURCES
@@ -60,13 +62,13 @@ target_link_libraries(${ENGINE_NAME} PRIVATE glm)
 set(IMGUI_INCLUDES
 	../external/imgui/imgui.h
 	../external/imgui/backends/imgui_impl_glfw.h
-	../external/imgui/backends/imgui_impl_opengl3.h
+	../external/imgui/backends/imgui_impl_OpenGL3.h
 )
 
 set(IMGUI_SOURCES
 	../external/imgui/imgui.cpp
 	../external/imgui/backends/imgui_impl_glfw.cpp
-	../external/imgui/backends/imgui_impl_opengl3.cpp
+	../external/imgui/backends/imgui_impl_OpenGL3.cpp
 	../external/imgui/imgui_demo.cpp
 	../external/imgui/imgui_tables.cpp
 	../external/imgui/imgui_widgets.cpp
