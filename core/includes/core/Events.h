@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Keys.h"
+
 #include <functional>
 #include <array>
 
@@ -49,8 +51,8 @@ namespace Bunny {
 
 	struct EventMouseMoved : public BaseEvent {
 		EventMouseMoved(const double new_x, const double new_y)
-			: x(new_x),
-			y(new_y)
+			: x(new_x)
+			, y(new_y)
 		{}
 
 		virtual EventType get_type() const override { return type; }
@@ -63,8 +65,8 @@ namespace Bunny {
 
 	struct EventWindowResize : public BaseEvent {
 		EventWindowResize(const unsigned int new_width, const unsigned int new_height) 
-			: width(new_width),
-			height(new_height)
+			: width(new_width)
+			, height(new_height)
 		{}
 
 		virtual EventType get_type() const override { return type; }
@@ -79,6 +81,32 @@ namespace Bunny {
 		virtual EventType get_type() const override { return type; }
 
 		static const EventType type = EventType::WindowClose;
+	};
+
+	struct EventKeyPressed : public BaseEvent {
+		EventKeyPressed(const KeyCode key_code, const bool repeat)
+			: key_code(key_code)
+			, repeat(repeat)
+		{}
+
+		KeyCode key_code;
+		bool repeat;
+
+		virtual EventType get_type() const override { return type; }
+
+		static const EventType type = EventType::KeyPressed;
+	};
+
+	struct EventKeyReleased : public BaseEvent {
+		EventKeyReleased(const KeyCode key_code)
+			: key_code(key_code)
+		{}
+
+		KeyCode key_code;
+
+		virtual EventType get_type() const override { return type; }
+
+		static const EventType type = EventType::KeyReleased;
 	};
 
 }

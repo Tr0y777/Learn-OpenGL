@@ -7,10 +7,13 @@ set(ENGINE_PUBLIC_INCLUDES
 	includes/core/Logs.h
 	includes/core/Events.h
 	includes/core/Camera.h
+	includes/core/Keys.h
+	includes/core/Input.h
 )
 
 set(ENGINE_PRIVATE_INCLUDES
 	src/core/Window.h
+	src/core/Modules/UIModule.h
 	src/core/render/OpenGL/ShaderProgram.h
 	src/core/render/OpenGL/VertexBuffer.h
 	src/core/render/OpenGL/IndexBuffer.h
@@ -20,8 +23,10 @@ set(ENGINE_PRIVATE_INCLUDES
 
 set(ENGINE_PRIVATE_SOURCES
 	src/core/Application.cpp
-	src/core/WIndow.cpp
+	src/core/Window.cpp
 	src/core/Camera.cpp
+	src/core/Input.cpp
+	src/core/Modules/UIModule.cpp
 	src/core/render/OpenGL/ShaderProgram.cpp
 	src/core/render/OpenGL/VertexBuffer.cpp
 	src/core/render/OpenGL/IndexBuffer.cpp
