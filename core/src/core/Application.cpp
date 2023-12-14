@@ -18,10 +18,10 @@
 namespace Bunny {
 
     GLfloat positions_colors[] = {
-        -.5f, -.5f, .0f,  .0f, .0f, 1.f,
-        .5f, -.5f, .0f,   1.f, .0f, .0f,
-        -.5f, .5f, .0f,   .0f, 1.f, .0f,
-        .5f, .5f, .0f,    .0f, 1.f, 1.f
+        .0f, -.5f, -.5f,    .0f, .0f, 1.f,
+        .0f,  .5f, -.5f,    1.f, .0f, .0f,
+        .0f, -.5f,  .5f,    .0f, 1.f, .0f,
+        .0f,   .5f,  .5f,    .0f, 1.f, 1.f
     };
 
     GLuint indices[] = {
@@ -171,14 +171,11 @@ namespace Bunny {
                 0, 0, 1, 0,
                 translate[0], translate[1], translate[2], 1);
 
-            glm::mat4 rotate_matrix = rotate_matrix_x * rotate_matrix_y * rotate_matrix_z;
+            glm::mat4 rotate_matrix = rotate_matrix_z * rotate_matrix_y * rotate_matrix_x;
 
             glm::mat4 model_matrix = translate_matrix * rotate_matrix * scale_matrix;
 
             p_shader_program->setMat4("model_matrix", model_matrix);
-
-            camera.set_position_rotation(glm::vec3(camera_pos[0], camera_pos[1], camera_pos[2]),
-                glm::vec3(camera_rotation[0], camera_rotation[1], camera_rotation[2]));
 
             camera.set_projection_mode(perspective_cam ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Ortographic);
 
@@ -190,6 +187,7 @@ namespace Bunny {
 
             bool show = true;
             UIModule::ShowExampleAppDockSpace(&show);
+            ImGui::ShowDemoWindow();
             ImGui::Begin("Properties");
             ImGui::ColorEdit4("Color", m_background_color);
             ImGui::SliderFloat3("Scale", scale, .0f, 2.f);

@@ -8,45 +8,71 @@
 
 class BunnyEngineEditor : public Bunny::Application {
 	virtual void Update() override {
+		bool move_camera = false;
+		glm::vec3 movement_delta{ 0, 0, 0 };
+		glm::vec3 rotation_delta{ 0, 0, 0 };
+
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_W)) {
-			camera_pos[2] -= .01f;
+			movement_delta.x += .05f;
+			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_S)) {
-			camera_pos[2] += .01f;
+			movement_delta.x -= .05f;
+			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_A)) {
-			camera_pos[0] -= .01f;
+			movement_delta.y -= .05f;
+			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_D)) {
-			camera_pos[0] += .01f;
+			movement_delta.y += .05f;
+			move_camera = true;
 		}
 		
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_E)) {
-			camera_pos[1] += .01f;
+			movement_delta.z += .05f;
+			move_camera = true;
 		}
 		
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_Q)) {
-			camera_pos[1] -= .01f;
+			movement_delta.z -= .05f;
+			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_UP)) {
-			camera_rotation[0] += .5f;
+			rotation_delta.y -= .5f;
+			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_DOWN)) {
-			camera_rotation[0] -= .5f;
+			rotation_delta.y += .5f;
+			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_LEFT)) {
-			camera_rotation[1] += .5f;
+			rotation_delta.z += .5f;
+			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_RIGHT)) {
-			camera_rotation[1] -= .5f;
+			rotation_delta.z -= .5f;
+			move_camera = true;
 		}
+		
+		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_P)) {
+			rotation_delta.x += .5f;
+			move_camera = true;
+		}
+		
+		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_O)) {
+			rotation_delta.x -= .5f;
+			move_camera = true;
+		}
+		if (move_camera)
+			camera.add__movement_and_rotation(movement_delta, rotation_delta);
 	}
 
 	virtual void onUIDraw() override {

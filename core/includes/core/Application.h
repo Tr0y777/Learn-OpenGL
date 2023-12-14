@@ -26,7 +26,7 @@ namespace Bunny {
 		float camera_pos[3] = { 0, 0, 1 };
 		float camera_rotation[3] = { 0, 0, 0 };
 		bool perspective_cam = true;
-		Camera camera;
+		Camera camera{ glm::vec3(-3, 0, 0) };
 
 	private:
 		std::unique_ptr<class Window> m_pWindow;

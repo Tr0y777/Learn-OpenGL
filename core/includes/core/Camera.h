@@ -23,6 +23,11 @@ namespace Bunny {
 		glm::mat4 get_view_matrix() const { return m_view_matrix; }
 		glm::mat4 get_projection_matrix() const { return m_projection_matrix; }
 
+		void move_forward(const float delta);
+		void move_right(const float delta);
+		void move_up(const float delta);
+		void add__movement_and_rotation(const glm::vec3& movement_delta, const glm::vec3& rotation_delta);
+
 	private:
 		void update_view_matrix();
 		void update_projection_matrix();
@@ -30,6 +35,15 @@ namespace Bunny {
 		glm::vec3 m_position;
 		glm::vec3 m_rotation;
 		ProjectionMode m_projection_mode;
+
+		glm::vec3 m_direction;
+		glm::vec3 m_right;
+		glm::vec3 m_up;
+
+		glm::vec3 s_world_up{ 0, 0, 1 };
+		glm::vec3 s_world_right{ 0, -1, 0 };
+		glm::vec3 s_world_forward{ 1, 0, 0 };
+
 		glm::mat4 m_view_matrix;
 		glm::mat4 m_projection_matrix;
 	};
