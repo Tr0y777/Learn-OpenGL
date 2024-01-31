@@ -14,65 +14,53 @@ class BunnyEngineEditor : public Bunny::Application {
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_W)) {
 			movement_delta.x += .05f;
-			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_S)) {
 			movement_delta.x -= .05f;
-			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_A)) {
 			movement_delta.y -= .05f;
-			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_D)) {
 			movement_delta.y += .05f;
-			move_camera = true;
 		}
 		
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_E)) {
 			movement_delta.z += .05f;
-			move_camera = true;
 		}
 		
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_Q)) {
 			movement_delta.z -= .05f;
-			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_UP)) {
 			rotation_delta.y -= .5f;
-			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_DOWN)) {
 			rotation_delta.y += .5f;
-			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_LEFT)) {
 			rotation_delta.z += .5f;
-			move_camera = true;
 		}
 
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_RIGHT)) {
 			rotation_delta.z -= .5f;
-			move_camera = true;
 		}
 		
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_P)) {
 			rotation_delta.x += .5f;
-			move_camera = true;
 		}
 		
 		if (Bunny::Input::isKeyPressed(Bunny::KeyCode::KEY_O)) {
 			rotation_delta.x -= .5f;
-			move_camera = true;
 		}
-		if (move_camera)
-			camera.add__movement_and_rotation(movement_delta, rotation_delta);
+
+		camera.add__movement_and_rotation(movement_delta, rotation_delta);
 	}
 
 	virtual void onUIDraw() override {
@@ -89,7 +77,7 @@ class BunnyEngineEditor : public Bunny::Application {
 int main() {
 	auto Editor = std::make_unique<BunnyEngineEditor>();
 
-	int returnCode = Editor->Start(1024, 768, "BunnyEngine Editor");
+	int returnCode = Editor->Start(1024, 768, "Bunny Editor");
 
 	return returnCode;
 }

@@ -20,12 +20,16 @@ namespace Bunny {
 		void set_rotation(const glm::vec3& rotation);
 		void set_position_rotation(const glm::vec3& position, const glm::vec3& rotation);
 		void set_projection_mode(const ProjectionMode projection_mode);
-		glm::mat4 get_view_matrix() const { return m_view_matrix; }
-		glm::mat4 get_projection_matrix() const { return m_projection_matrix; }
+		const glm::mat4& get_view_matrix();
+		const glm::mat4& get_projection_matrix() const { return m_projection_matrix; }
 
 		void move_forward(const float delta);
 		void move_right(const float delta);
 		void move_up(const float delta);
+
+		const glm::vec3& get_camera_position() const { return m_position; }
+		const glm::vec3& get_camera_rotation() const { return m_rotation; }
+
 		void add__movement_and_rotation(const glm::vec3& movement_delta, const glm::vec3& rotation_delta);
 
 	private:
@@ -46,6 +50,8 @@ namespace Bunny {
 
 		glm::mat4 m_view_matrix;
 		glm::mat4 m_projection_matrix;
+
+		bool m_update_view_matrix = false;
 	};
 
 }
